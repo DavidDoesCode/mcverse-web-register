@@ -17,4 +17,9 @@ public class MessageUtil {
         String message = plugin.getConfig().getString("messages." + key, "&cMissing message: " + key);
         return ChatColor.translateAlternateColorCodes('&', prefix + message);
     }
+
+    /** Translates color codes in a raw string. */
+    public String format(String raw) {
+        return ChatColor.translateAlternateColorCodes('&', raw);
+    }
 }
