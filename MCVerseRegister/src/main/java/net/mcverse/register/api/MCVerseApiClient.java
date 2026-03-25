@@ -12,12 +12,14 @@ import java.util.UUID;
 public class MCVerseApiClient {
 
     private final MCVerseRegister plugin;
-    private final HttpClient httpClient;
 
     public MCVerseApiClient(MCVerseRegister plugin) {
         this.plugin = plugin;
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofMillis(plugin.getConfig().getInt("request-timeout", 5000)))
+    }
+
+    private HttpClient buildClient() {
+        return HttpClient.newBuilder()
+                .connectTimeout(Duration.ofMillis(timeout()))
                 .build();
     }
 
@@ -38,7 +40,7 @@ public class MCVerseApiClient {
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = buildClient().send(request, HttpResponse.BodyHandlers.ofString());
         return new ApiResponse(response.statusCode(), response.body());
     }
 
@@ -52,7 +54,7 @@ public class MCVerseApiClient {
                 .DELETE()
                 .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = buildClient().send(request, HttpResponse.BodyHandlers.ofString());
         return new ApiResponse(response.statusCode(), response.body());
     }
 
@@ -66,7 +68,7 @@ public class MCVerseApiClient {
                 .GET()
                 .build();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = buildClient().send(request, HttpResponse.BodyHandlers.ofString());
         return response.statusCode() == 200;
     }
 
