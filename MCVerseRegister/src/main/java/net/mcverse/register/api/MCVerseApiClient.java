@@ -19,6 +19,7 @@ public class MCVerseApiClient {
 
     private HttpClient buildClient() {
         return HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
                 .connectTimeout(Duration.ofMillis(timeout()))
                 .build();
     }
