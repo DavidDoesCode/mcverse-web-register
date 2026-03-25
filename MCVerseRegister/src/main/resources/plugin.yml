@@ -4,7 +4,7 @@ main: net.mcverse.register.MCVerseRegister
 api-version: "1.21"
 description: Link your Minecraft account to the MCVerse website
 authors: [MCVerse]
-website: https://mcverse.net
+website: https://www.mcverse.city
 
 commands:
   register:

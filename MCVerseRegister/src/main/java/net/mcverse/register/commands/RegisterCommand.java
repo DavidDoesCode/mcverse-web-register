@@ -65,11 +65,8 @@ public class RegisterCommand implements CommandExecutor {
                 plugin.getLogger().info("Registration attempt by " + player.getName()
                         + " (" + email + "): HTTP " + response.getStatusCode());
 
-                boolean success = response.getStatusCode() == 200 || response.getStatusCode() == 201;
-                if (success) {
-                    plugin.getRegistrationCache().setRegistered(player.getUniqueId(), true);
-                }
-
+                // Cache is NOT updated here — email confirmation is required first.
+                // Registration status is resolved from the backend on the player's next login.
                 String message = messageForResponse(response);
                 Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(message));
 

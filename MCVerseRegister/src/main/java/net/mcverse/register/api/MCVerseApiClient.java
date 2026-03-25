@@ -23,6 +23,7 @@ public class MCVerseApiClient {
 
     public ApiResponse registerPlayer(UUID uuid, String username, String email) throws Exception {
         String url = baseUrl() + "/api/v1/auth/register";
+        plugin.getLogger().info("POST " + url);
 
         String body = String.format(
                 "{\"minecraftUuid\":\"%s\",\"minecraftUsername\":\"%s\",\"email\":\"%s\"}",
@@ -70,7 +71,7 @@ public class MCVerseApiClient {
     }
 
     private String baseUrl() {
-        return plugin.getConfig().getString("api-base-url", "https://api.mcverse.city");
+        return plugin.getConfig().getString("api-base-url", "https://preview.mcverse.city");
     }
 
     private int timeout() {
