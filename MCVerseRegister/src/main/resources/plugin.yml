@@ -1,0 +1,31 @@
+name: MCVerseRegister
+version: 1.0.0
+main: net.mcverse.register.MCVerseRegister
+api-version: "1.21"
+description: Link your Minecraft account to the MCVerse website
+authors: [MCVerse]
+website: https://mcverse.net
+
+commands:
+  register:
+    description: Register your email for website access
+    usage: /register <email>
+    aliases: [webregister, link]
+  unregister:
+    description: Unlink your Minecraft account from the MCVerse website
+    usage: /unregister
+    aliases: [webunregister, unlink]
+
+permissions:
+  mcverse.register:
+    description: Allows players to register for the website
+    default: op
+  mcverse.unregister:
+    description: Allows players to unregister from the website
+    default: op
+  mcverse.register.bypass-cooldown:
+    description: Bypass the registration cooldown
+    default: op
+  mcverse.admin:
+    description: MCVerse admin commands
+    default: op

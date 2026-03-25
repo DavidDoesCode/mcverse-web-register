@@ -1,0 +1,41 @@
+# MCVerse Registration Plugin Configuration
+
+# Base URL of the MCVerse backend API (no trailing slash)
+api-base-url: "https://api.mcverse.city"
+
+# Cooldown between /register attempts per player (seconds)
+register-cooldown: 60
+
+# HTTP request timeout (milliseconds)
+request-timeout: 5000
+
+# Messages (supports & color codes)
+messages:
+  prefix: "&8[&bMCVerse&8] &r"
+
+  # /register
+  register-usage: "&eUsage: /register your@email.com"
+  register-invalid-email: "&cPlease enter a valid email address. Usage: /register your@email.com"
+  register-already-registered: "&eYou are already registered. Use &b/unregister &eto unlink your account."
+  register-cooldown: "&eYou must wait &b{seconds} &eseconds before registering again."
+  register-success-new: "&aYour account has been created! Check your email for a login link."
+  register-success-update: "&aYour email has been updated! Check your email for a new login link."
+  register-conflict: "&cThat email is already registered to another player."
+  register-invalid-input: "&cInvalid registration details. Please check your email and try again."
+  register-rate-limited: "&eToo many attempts. Please wait a moment and try again."
+  register-forbidden: "&cRegistration is currently unavailable. Please contact an admin."
+  register-error: "&cCould not reach the MCVerse website. Please try again later."
+
+  # /unregister
+  unregister-success: "&aYour account has been unlinked from MCVerse."
+  unregister-not-registered: "&eYou are not registered on MCVerse."
+  unregister-rate-limited: "&eToo many attempts. Please wait a moment and try again."
+  unregister-forbidden: "&cThis action is currently unavailable. Please contact an admin."
+  unregister-error: "&cCould not reach the MCVerse website. Please try again later."
+
+  # Login hint
+  login-not-registered: "&eYou haven't linked your MCVerse account yet! Use &b/register your@email.com &eto get started."
+
+  # General
+  no-permission: "&cYou do not have permission to use this command."
+  players-only: "&cThis command can only be used by players."
