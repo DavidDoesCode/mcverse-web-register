@@ -15,6 +15,10 @@ commands:
     description: Unlink your Minecraft account from the MCVerse website
     usage: /unregister
     aliases: [webunregister, unlink]
+  mcvadmin:
+    description: MCVerse admin commands
+    usage: /mcvadmin <status|remove> [player]
+    aliases: [mcverseadmin]
 
 permissions:
   mcverse.register:
