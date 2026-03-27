@@ -34,7 +34,7 @@ messages:
   unregister-error: "&cCould not reach the MCVerse website. Please try again later."
 
   # Login hint
-  login-not-registered: "&eYou haven't linked your MCVerse account yet! Use &b/register your@email.com &eto get started."
+  login-not-registered: "&eYou haven't linked your MCVerse account yet! Use &b/register <your-email> &eto get started."
 
   # General
   no-permission: "&cYou do not have permission to use this command."
