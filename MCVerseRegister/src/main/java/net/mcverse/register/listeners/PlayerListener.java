@@ -26,7 +26,7 @@ public class PlayerListener implements Listener {
                 boolean registered = plugin.getApiClient().getPlayerStatus(player.getUniqueId());
                 plugin.getRegistrationCache().setRegistered(player.getUniqueId(), registered);
 
-                if (!registered) {
+                if (!registered && player.hasPermission("mcverse.register")) {
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         if (player.isOnline()) {
                             player.sendMessage(plugin.getMessageUtil().get("login-not-registered"));
