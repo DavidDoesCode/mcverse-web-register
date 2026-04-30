@@ -5,6 +5,7 @@ import net.mcverse.register.commands.AdminCommand;
 import net.mcverse.register.commands.RegisterCommand;
 import net.mcverse.register.commands.UnregisterCommand;
 import net.mcverse.register.listeners.PlayerListener;
+import net.mcverse.register.service.UsernameSyncService;
 import net.mcverse.register.util.CooldownManager;
 import net.mcverse.register.util.MessageUtil;
 import net.mcverse.register.util.RegistrationCache;
@@ -17,6 +18,7 @@ public class MCVerseRegister extends JavaPlugin {
     private CooldownManager cooldownManager;
     private RegistrationCache registrationCache;
     private MessageUtil messageUtil;
+    private UsernameSyncService usernameSyncService;
 
     @Override
     public void onEnable() {
@@ -26,6 +28,7 @@ public class MCVerseRegister extends JavaPlugin {
         this.cooldownManager = new CooldownManager(this);
         this.registrationCache = new RegistrationCache();
         this.messageUtil = new MessageUtil(this);
+        this.usernameSyncService = new UsernameSyncService(this);
 
         getCommand("register").setExecutor(new RegisterCommand(this));
         getCommand("unregister").setExecutor(new UnregisterCommand(this));
@@ -45,4 +48,5 @@ public class MCVerseRegister extends JavaPlugin {
     public CooldownManager getCooldownManager() { return cooldownManager; }
     public RegistrationCache getRegistrationCache() { return registrationCache; }
     public MessageUtil getMessageUtil() { return messageUtil; }
+    public UsernameSyncService getUsernameSyncService() { return usernameSyncService; }
 }

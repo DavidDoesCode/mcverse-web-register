@@ -1,6 +1,7 @@
 package net.mcverse.register.listeners;
 
 import net.mcverse.register.MCVerseRegister;
+import net.mcverse.register.service.UsernameSyncResult;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -23,10 +24,11 @@ public class PlayerListener implements Listener {
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                boolean registered = plugin.getApiClient().getPlayerStatus(player.getUniqueId());
-                plugin.getRegistrationCache().setRegistered(player.getUniqueId(), registered);
+                UsernameSyncResult syncResult = plugin.getUsernameSyncService()
+                        .syncIfNeeded(player.getUniqueId(), player.getName());
+                plugin.getRegistrationCache().setRegistered(player.getUniqueId(), syncResult.registered());
 
-                if (!registered && player.hasPermission("mcverse.register")) {
+                if (syncResult.success() && !syncResult.registered() && player.hasPermission("mcverse.register")) {
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         if (player.isOnline()) {
                             player.sendMessage(plugin.getMessageUtil().get("login-not-registered"));

@@ -7,6 +7,7 @@ A Paper plugin that lets players link their Minecraft account to the MCVerse web
 - `/register <email>` — link a Minecraft account to the MCVerse website
 - `/unregister` — unlink a Minecraft account
 - Registration status checked on login; unregistered players are shown a hint
+- Username drift is reconciled on login (backend name check + sync when mismatch is found)
 - Per-player cooldown to prevent spam
 - All messages configurable via `config.yml`
 
@@ -68,8 +69,11 @@ The plugin communicates with the MCVerse backend using these endpoints:
 | `POST` | `/api/v1/auth/register` | Register a player |
 | `DELETE` | `/api/v1/auth/player/{uuid}` | Unregister a player |
 | `GET` | `/api/v1/auth/player/{uuid}` | Check registration status on login |
+| `POST` | `/api/v1/sync/players/{uuid}/username` | Sync backend username when player name changed |
 
 The `User-Agent` header is set to `MCVerseRegister/1.0.0` on all requests. All HTTP calls are made asynchronously to avoid blocking the main thread.
+
+On player join, the plugin performs a case-sensitive compare between backend `minecraftUsername` and the current in-game username. If they differ, it calls the username sync endpoint with `minecraftUsername` and `observedAt` (ISO-8601). The sync is idempotent (`changed=false` means no-op), and transient transport failures use a fixed retry policy of up to 3 attempts with exponential backoff plus small jitter.
 
 ### Register request body
 

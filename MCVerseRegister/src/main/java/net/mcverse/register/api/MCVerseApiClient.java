@@ -7,10 +7,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 public class MCVerseApiClient {
 
+    private static final String USER_AGENT = "MCVerseRegister/1.0.0";
     private final MCVerseRegister plugin;
 
     public MCVerseApiClient(MCVerseRegister plugin) {
@@ -36,7 +38,7 @@ public class MCVerseApiClient {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Content-Type", "application/json")
-                .header("User-Agent", "MCVerseRegister/1.0.0")
+                .header("User-Agent", USER_AGENT)
                 .timeout(Duration.ofMillis(timeout()))
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
@@ -50,7 +52,7 @@ public class MCVerseApiClient {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .header("User-Agent", "MCVerseRegister/1.0.0")
+                .header("User-Agent", USER_AGENT)
                 .timeout(Duration.ofMillis(timeout()))
                 .DELETE()
                 .build();
@@ -60,17 +62,41 @@ public class MCVerseApiClient {
     }
 
     public boolean getPlayerStatus(UUID uuid) throws Exception {
+        return getPlayer(uuid).getStatusCode() == 200;
+    }
+
+    public ApiResponse getPlayer(UUID uuid) throws Exception {
         String url = baseUrl() + "/api/v1/auth/player/" + uuid;
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
-                .header("User-Agent", "MCVerseRegister/1.0.0")
+                .header("User-Agent", USER_AGENT)
                 .timeout(Duration.ofMillis(timeout()))
                 .GET()
                 .build();
 
         HttpResponse<String> response = buildClient().send(request, HttpResponse.BodyHandlers.ofString());
-        return response.statusCode() == 200;
+        return new ApiResponse(response.statusCode(), response.body());
+    }
+
+    public ApiResponse syncUsername(UUID uuid, UsernameSyncRequest requestBody) throws Exception {
+        String url = baseUrl() + "/api/v1/sync/players/" + uuid + "/username";
+        String body = requestBody.toJson();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("User-Agent", USER_AGENT)
+                .timeout(Duration.ofMillis(timeout()))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = buildClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return new ApiResponse(response.statusCode(), response.body());
+    }
+
+    public ApiResponse syncUsername(UUID uuid, String minecraftUsername) throws Exception {
+        return syncUsername(uuid, new UsernameSyncRequest(minecraftUsername, Instant.now()));
     }
 
     private String baseUrl() {
