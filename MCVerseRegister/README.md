@@ -8,6 +8,7 @@ A Paper plugin that lets players link their Minecraft account to the MCVerse web
 - `/unregister` — unlink a Minecraft account
 - Registration status checked on login; unregistered players are shown a hint
 - Username drift is reconciled on login (backend name check + sync when mismatch is found)
+- Admin diagnostics sync on login: balance, groups, clan info, and claims summary/list
 - Per-player cooldown to prevent spam
 - All messages configurable via `config.yml`
 
@@ -70,10 +71,16 @@ The plugin communicates with the MCVerse backend using these endpoints:
 | `DELETE` | `/api/v1/auth/player/{uuid}` | Unregister a player |
 | `GET` | `/api/v1/auth/player/{uuid}` | Check registration status on login |
 | `POST` | `/api/v1/sync/players/{uuid}/username` | Sync backend username when player name changed |
+| `POST` | `/api/v1/sync/players/{uuid}/balance` | Sync Vault balance snapshot |
+| `POST` | `/api/v1/sync/players/{uuid}/groups` | Sync LuckPerms primary group + groups |
+| `POST` | `/api/v1/sync/players/{uuid}/simpleclans` | Sync SimpleClans clan/tag/role |
+| `POST` | `/api/v1/sync/players/{uuid}/griefprevention-claims` | Sync GriefPrevention claims summary/list |
 
 The `User-Agent` header is set to `MCVerseRegister/1.0.0` on all requests. All HTTP calls are made asynchronously to avoid blocking the main thread.
 
 On player join, the plugin performs a case-sensitive compare between backend `minecraftUsername` and the current in-game username. If they differ, it calls the username sync endpoint with `minecraftUsername` and `observedAt` (ISO-8601). The sync is idempotent (`changed=false` means no-op), and transient transport failures use a fixed retry policy of up to 3 attempts with exponential backoff plus small jitter.
+
+For diagnostic sync fanout, the plugin gathers snapshots from soft dependencies (Vault, LuckPerms, SimpleClans, GriefPrevention) when available, then posts each category asynchronously. Category syncs include debounce (`sync.min-sync-interval-ms`), retries on network/5xx responses, and a temporary unlinked cache after 404 responses (`sync.unlinked-cache-ttl-ms`) to reduce repeated failed calls.
 
 ### Register request body
 

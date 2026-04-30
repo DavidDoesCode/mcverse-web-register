@@ -99,6 +99,37 @@ public class MCVerseApiClient {
         return syncUsername(uuid, new UsernameSyncRequest(minecraftUsername, Instant.now()));
     }
 
+    public ApiResponse syncBalance(UUID uuid, BalanceSyncRequest requestBody) throws Exception {
+        return postPlayerSync(uuid, "balance", requestBody.toJson());
+    }
+
+    public ApiResponse syncGroups(UUID uuid, GroupsSyncRequest requestBody) throws Exception {
+        return postPlayerSync(uuid, "groups", requestBody.toJson());
+    }
+
+    public ApiResponse syncSimpleClans(UUID uuid, SimpleClansSyncRequest requestBody) throws Exception {
+        return postPlayerSync(uuid, "simpleclans", requestBody.toJson());
+    }
+
+    public ApiResponse syncGriefPreventionClaims(UUID uuid, GriefPreventionClaimsSyncRequest requestBody) throws Exception {
+        return postPlayerSync(uuid, "griefprevention-claims", requestBody.toJson());
+    }
+
+    private ApiResponse postPlayerSync(UUID uuid, String category, String body) throws Exception {
+        String url = baseUrl() + "/api/v1/sync/players/" + uuid + "/" + category;
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("User-Agent", USER_AGENT)
+                .timeout(Duration.ofMillis(timeout()))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        HttpResponse<String> response = buildClient().send(request, HttpResponse.BodyHandlers.ofString());
+        return new ApiResponse(response.statusCode(), response.body());
+    }
+
     private String baseUrl() {
         return plugin.getConfig().getString("api-base-url", "https://preview.mcverse.city");
     }

@@ -27,6 +27,7 @@ public class PlayerListener implements Listener {
                 UsernameSyncResult syncResult = plugin.getUsernameSyncService()
                         .syncIfNeeded(player.getUniqueId(), player.getName());
                 plugin.getRegistrationCache().setRegistered(player.getUniqueId(), syncResult.registered());
+                plugin.getPlayerStateSyncService().syncPlayer(player, "join");
 
                 if (syncResult.success() && !syncResult.registered() && player.hasPermission("mcverse.register")) {
                     Bukkit.getScheduler().runTask(plugin, () -> {

@@ -9,6 +9,23 @@ register-cooldown: 60
 # HTTP request timeout (milliseconds)
 request-timeout: 5000
 
+# Diagnostic sync fanout configuration
+sync:
+  # Minimum interval per player+category to avoid API spam
+  min-sync-interval-ms: 30000
+
+  # Unlinked player cache TTL after 404 response
+  unlinked-cache-ttl-ms: 300000
+
+  retry:
+    max-attempts: 3
+    base-backoff-ms: 250
+    max-backoff-ms: 2000
+
+  reconciliation:
+    enabled: false
+    interval-seconds: 300
+
 # Messages (supports & color codes)
 messages:
   prefix: "&8[&bMCVerse&8] &r"
