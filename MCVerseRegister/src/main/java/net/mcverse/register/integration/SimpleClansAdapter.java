@@ -45,7 +45,8 @@ public class SimpleClansAdapter implements PlayerDataAdapter<ClanSnapshot> {
             return Optional.of(new ClanSnapshot(null, null, null));
         }
 
-        String role = clanPlayer.getRole() == null ? null : clanPlayer.getRole().name();
+        String rankId = clanPlayer.getRankId();
+        String role = rankId.isEmpty() ? null : rankId;
         return Optional.of(new ClanSnapshot(clan.getTag(), clan.getName(), role));
     }
 }
