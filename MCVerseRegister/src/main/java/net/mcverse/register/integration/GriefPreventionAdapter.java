@@ -40,11 +40,11 @@ public class GriefPreventionAdapter implements PlayerDataAdapter<ClaimsSnapshot>
             return Optional.empty();
         }
 
-        PlayerData data = griefPrevention.dataStore.getPlayerDataFromStorage(player.getUniqueId());
-        List<Claim> claims = griefPrevention.dataStore.getPlayerClaims(player.getUniqueId());
+        PlayerData data = griefPrevention.dataStore.getPlayerData(player.getUniqueId());
 
         List<ClaimLocation> claimLocations = new ArrayList<>();
-        for (Claim claim : claims) {
+        for (Object element : data.getClaims()) {
+            Claim claim = (Claim) element;
             Location lesserCorner = claim.getLesserBoundaryCorner();
             claimLocations.add(new ClaimLocation(
                     lesserCorner.getWorld() == null ? "unknown" : lesserCorner.getWorld().getName(),
@@ -54,9 +54,9 @@ public class GriefPreventionAdapter implements PlayerDataAdapter<ClaimsSnapshot>
         }
 
         return Optional.of(new ClaimsSnapshot(
-                claims.size(),
-                data.accruedClaimBlocks,
-                data.bonusClaimBlocks,
+                claimLocations.size(),
+                data.getAccruedClaimBlocks(),
+                data.getBonusClaimBlocks(),
                 data.getRemainingClaimBlocks(),
                 claimLocations
         ));
