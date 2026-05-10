@@ -3,6 +3,7 @@ package net.mcverse.register.service;
 import net.mcverse.register.MCVerseRegister;
 import net.mcverse.register.api.ApiResponse;
 import net.mcverse.register.api.MCVerseApiClient;
+import net.mcverse.register.api.UsernameSyncRequest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,7 @@ class UsernameSyncServiceTest {
 
         assertTrue(result.success());
         assertFalse(result.registered());
-        verify(apiClient, never()).syncUsername(eq(uuid), any());
+        verify(apiClient, never()).syncUsername(eq(uuid), any(UsernameSyncRequest.class));
     }
 
     @Test
@@ -72,7 +73,7 @@ class UsernameSyncServiceTest {
         assertTrue(result.success());
         assertTrue(result.registered());
         assertFalse(result.changed());
-        verify(apiClient, never()).syncUsername(eq(uuid), any());
+        verify(apiClient, never()).syncUsername(eq(uuid), any(UsernameSyncRequest.class));
     }
 
     @Test
@@ -82,14 +83,15 @@ class UsernameSyncServiceTest {
                 200,
                 "{\"success\":true,\"registered\":true,\"player\":{\"minecraftUsername\":\"OldName\",\"minecraftUuid\":\"" + uuid + "\"}}"
         ));
-        when(apiClient.syncUsername(eq(uuid), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"changed\":true}"));
+        when(apiClient.syncUsername(eq(uuid), any(UsernameSyncRequest.class)))
+                .thenReturn(new ApiResponse(200, "{\"success\":true,\"changed\":true}"));
 
         UsernameSyncResult result = service.syncIfNeeded(uuid, "NewName");
 
         assertTrue(result.success());
         assertTrue(result.registered());
         assertTrue(result.changed());
-        verify(apiClient, times(1)).syncUsername(eq(uuid), any());
+        verify(apiClient, times(1)).syncUsername(eq(uuid), any(UsernameSyncRequest.class));
     }
 
     @Test
@@ -104,14 +106,15 @@ class UsernameSyncServiceTest {
                         200,
                         "{\"success\":true,\"registered\":true,\"player\":{\"minecraftUsername\":\"NewName\",\"minecraftUuid\":\"" + uuid + "\"}}"
                 ));
-        when(apiClient.syncUsername(eq(uuid), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"changed\":true}"));
+        when(apiClient.syncUsername(eq(uuid), any(UsernameSyncRequest.class)))
+                .thenReturn(new ApiResponse(200, "{\"success\":true,\"changed\":true}"));
 
         UsernameSyncResult first = service.syncIfNeeded(uuid, "NewName");
         UsernameSyncResult second = service.syncIfNeeded(uuid, "NewName");
 
         assertTrue(first.changed());
         assertFalse(second.changed());
-        verify(apiClient, times(1)).syncUsername(eq(uuid), any());
+        verify(apiClient, times(1)).syncUsername(eq(uuid), any(UsernameSyncRequest.class));
     }
 
     @Test
