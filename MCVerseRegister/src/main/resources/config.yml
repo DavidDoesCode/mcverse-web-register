@@ -9,6 +9,9 @@ register-cooldown: 60
 # HTTP request timeout (milliseconds)
 request-timeout: 5000
 
+# Website login URL shown to already-linked players who run /register
+login-url: "https://www.mcverse.city/login"
+
 # Diagnostic sync fanout configuration
 sync:
   # Minimum interval per player+category to avoid API spam
@@ -25,6 +28,23 @@ sync:
   reconciliation:
     enabled: false
     interval-seconds: 300
+
+  server-stats:
+    enabled: true
+    run-at: "10:00"
+    timezone: "America/Chicago"
+    catch-up-on-startup: true
+    main-world: world
+    plan-active-playtime-ms: 1800000
+    ranks:
+      default: default
+      member: member
+      regular: regular
+      citizen: citizen
+
+  vanilla-stats:
+    enabled: true
+    min-interval-hours: 24
 
 # Messages (supports & color codes)
 messages:

@@ -5,7 +5,7 @@ api-version: "1.21"
 description: Link your Minecraft account to the MCVerse website
 authors: [MCVerse]
 website: https://www.mcverse.city
-softdepend: [Vault, LuckPerms, SimpleClans, GriefPrevention]
+softdepend: [Vault, LuckPerms, SimpleClans, GriefPrevention, Plan]
 
 commands:
   register:
@@ -18,7 +18,7 @@ commands:
     aliases: [webunregister, unlink]
   mcvadmin:
     description: MCVerse admin commands
-    usage: /mcvadmin <status|remove> [player]
+    usage: /mcvadmin <status|remove|syncstats> [player]
     aliases: [mcverseadmin]
 
 permissions:
