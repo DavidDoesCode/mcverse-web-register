@@ -115,8 +115,15 @@ public class MCVerseApiClient {
         return postPlayerSync(uuid, "griefprevention-claims", requestBody.toJson());
     }
 
+    public ApiResponse syncServerStats(ServerStatsSyncRequest requestBody) throws Exception {
+        return postJson(baseUrl() + "/api/v1/sync/server/stats", requestBody.toJson());
+    }
+
     private ApiResponse postPlayerSync(UUID uuid, String category, String body) throws Exception {
-        String url = baseUrl() + "/api/v1/sync/players/" + uuid + "/" + category;
+        return postJson(baseUrl() + "/api/v1/sync/players/" + uuid + "/" + category, body);
+    }
+
+    private ApiResponse postJson(String url, String body) throws Exception {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))

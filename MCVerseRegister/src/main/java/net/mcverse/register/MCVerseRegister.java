@@ -19,6 +19,7 @@ import net.mcverse.register.commands.RegisterCommand;
 import net.mcverse.register.commands.UnregisterCommand;
 import net.mcverse.register.listeners.PlayerListener;
 import net.mcverse.register.service.PlayerStateSyncService;
+import net.mcverse.register.service.ServerStatsSyncService;
 import net.mcverse.register.service.UsernameSyncService;
 import net.mcverse.register.util.CooldownManager;
 import net.mcverse.register.util.MessageUtil;
@@ -34,6 +35,7 @@ public class MCVerseRegister extends JavaPlugin {
     private MessageUtil messageUtil;
     private UsernameSyncService usernameSyncService;
     private PlayerStateSyncService playerStateSyncService;
+    private ServerStatsSyncService serverStatsSyncService;
 
     @Override
     public void onEnable() {
@@ -58,12 +60,17 @@ public class MCVerseRegister extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         scheduleDiagnosticReconciliation();
+        this.serverStatsSyncService = new ServerStatsSyncService(this);
+        this.serverStatsSyncService.start();
 
         getLogger().info("MCVerseRegister v" + getDescription().getVersion() + " enabled.");
     }
 
     @Override
     public void onDisable() {
+        if (serverStatsSyncService != null) {
+            serverStatsSyncService.shutdown();
+        }
         getLogger().info("MCVerseRegister disabled.");
     }
 
@@ -73,6 +80,7 @@ public class MCVerseRegister extends JavaPlugin {
     public MessageUtil getMessageUtil() { return messageUtil; }
     public UsernameSyncService getUsernameSyncService() { return usernameSyncService; }
     public PlayerStateSyncService getPlayerStateSyncService() { return playerStateSyncService; }
+    public ServerStatsSyncService getServerStatsSyncService() { return serverStatsSyncService; }
 
     private PlayerDataAdapter<BalanceSnapshot> resolveBalanceAdapter() {
         VaultBalanceAdapter adapter = new VaultBalanceAdapter();

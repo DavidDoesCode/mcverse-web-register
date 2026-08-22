@@ -35,6 +35,7 @@ public class AdminCommand implements CommandExecutor {
         switch (args[0].toLowerCase()) {
             case "status" -> handleStatus(sender, args);
             case "remove" -> handleRemove(sender, args);
+            case "syncstats" -> handleSyncStats(sender);
             default -> sendUsage(sender);
         }
 
@@ -162,10 +163,23 @@ public class AdminCommand implements CommandExecutor {
         });
     }
 
+    private void handleSyncStats(CommandSender sender) {
+        sender.sendMessage(plugin.getMessageUtil().format(
+                "&8[&bMCVerse&8] &7Starting a server stats snapshot..."));
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            boolean updated = plugin.getServerStatsSyncService().runForced();
+            String message = updated
+                    ? plugin.getMessageUtil().format("&8[&bMCVerse&8] &aServer stats snapshot posted.")
+                    : plugin.getMessageUtil().format("&8[&bMCVerse&8] &eServer stats snapshot did not update. Check the console.");
+            Bukkit.getScheduler().runTask(plugin, () -> sender.sendMessage(message));
+        });
+    }
+
     private void sendUsage(CommandSender sender) {
         sender.sendMessage(plugin.getMessageUtil().format("&8[&bMCVerse Admin&8]"));
         sender.sendMessage(plugin.getMessageUtil().format("  &b/mcvadmin status &8— &7List online players' registration status"));
         sender.sendMessage(plugin.getMessageUtil().format("  &b/mcvadmin status <player> &8— &7Check a specific player's status"));
         sender.sendMessage(plugin.getMessageUtil().format("  &b/mcvadmin remove <player> &8— &7Remove a player's registration"));
+        sender.sendMessage(plugin.getMessageUtil().format("  &b/mcvadmin syncstats &8— &7Force a server stats snapshot"));
     }
 }
