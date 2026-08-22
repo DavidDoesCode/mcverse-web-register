@@ -99,8 +99,7 @@ public class VanillaStatsSyncService {
                 return;
             }
             if (status == 200) {
-                Instant successAt = snapshot.observedAt() == null ? Instant.now() : snapshot.observedAt();
-                lastSuccessfulAt.put(uuid, successAt);
+                lastSuccessfulAt.put(uuid, Instant.now());
                 saveLastSuccessful();
                 plugin.getLogger().info("[vanilla-stats] posted uuid=" + uuid + " payload={" + payload.summary() + "}");
                 return;

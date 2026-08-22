@@ -69,7 +69,7 @@ class VanillaStatsSyncServiceTest {
         });
         when(player.getUniqueId()).thenReturn(uuid);
 
-        Instant observedAt = Instant.parse("2026-08-21T22:15:00Z");
+        Instant observedAt = Instant.now();
         VanillaStatsSnapshot snapshot = new VanillaStatsSnapshot(
                 observedAt,
                 "1.21.11",
