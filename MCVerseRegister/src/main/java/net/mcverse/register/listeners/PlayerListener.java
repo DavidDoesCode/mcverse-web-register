@@ -46,6 +46,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        plugin.getVanillaStatsSyncService().handleQuit(player);
         plugin.getCooldownManager().remove(player.getUniqueId());
         plugin.getRegistrationCache().remove(player.getUniqueId());
     }

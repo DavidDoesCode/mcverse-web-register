@@ -119,6 +119,10 @@ public class MCVerseApiClient {
         return postJson(baseUrl() + "/api/v1/sync/server/stats", requestBody.toJson());
     }
 
+    public ApiResponse syncVanillaStats(UUID uuid, VanillaStatsSyncRequest requestBody) throws Exception {
+        return postPlayerSync(uuid, "vanilla-stats", requestBody.toJson());
+    }
+
     private ApiResponse postPlayerSync(UUID uuid, String category, String body) throws Exception {
         return postJson(baseUrl() + "/api/v1/sync/players/" + uuid + "/" + category, body);
     }

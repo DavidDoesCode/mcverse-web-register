@@ -21,6 +21,7 @@ import net.mcverse.register.listeners.PlayerListener;
 import net.mcverse.register.service.PlayerStateSyncService;
 import net.mcverse.register.service.ServerStatsSyncService;
 import net.mcverse.register.service.UsernameSyncService;
+import net.mcverse.register.service.VanillaStatsSyncService;
 import net.mcverse.register.util.CooldownManager;
 import net.mcverse.register.util.MessageUtil;
 import net.mcverse.register.util.RegistrationCache;
@@ -35,6 +36,7 @@ public class MCVerseRegister extends JavaPlugin {
     private MessageUtil messageUtil;
     private UsernameSyncService usernameSyncService;
     private PlayerStateSyncService playerStateSyncService;
+    private VanillaStatsSyncService vanillaStatsSyncService;
     private ServerStatsSyncService serverStatsSyncService;
 
     @Override
@@ -46,13 +48,19 @@ public class MCVerseRegister extends JavaPlugin {
         this.registrationCache = new RegistrationCache();
         this.messageUtil = new MessageUtil(this);
         this.usernameSyncService = new UsernameSyncService(this);
+        var balanceAdapter = resolveBalanceAdapter();
+        var groupsAdapter = resolveGroupsAdapter();
+        var clansAdapter = resolveSimpleClansAdapter();
+        var claimsAdapter = resolveGriefPreventionAdapter();
         this.playerStateSyncService = new PlayerStateSyncService(
                 this,
-                resolveBalanceAdapter(),
-                resolveGroupsAdapter(),
-                resolveSimpleClansAdapter(),
-                resolveGriefPreventionAdapter()
+                balanceAdapter,
+                groupsAdapter,
+                clansAdapter,
+                claimsAdapter
         );
+        this.vanillaStatsSyncService = new VanillaStatsSyncService(this, balanceAdapter, groupsAdapter);
+        this.serverStatsSyncService = new ServerStatsSyncService(this);
 
         getCommand("register").setExecutor(new RegisterCommand(this));
         getCommand("unregister").setExecutor(new UnregisterCommand(this));
@@ -60,7 +68,6 @@ public class MCVerseRegister extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
         scheduleDiagnosticReconciliation();
-        this.serverStatsSyncService = new ServerStatsSyncService(this);
         this.serverStatsSyncService.start();
 
         getLogger().info("MCVerseRegister v" + getDescription().getVersion() + " enabled.");
@@ -80,6 +87,7 @@ public class MCVerseRegister extends JavaPlugin {
     public MessageUtil getMessageUtil() { return messageUtil; }
     public UsernameSyncService getUsernameSyncService() { return usernameSyncService; }
     public PlayerStateSyncService getPlayerStateSyncService() { return playerStateSyncService; }
+    public VanillaStatsSyncService getVanillaStatsSyncService() { return vanillaStatsSyncService; }
     public ServerStatsSyncService getServerStatsSyncService() { return serverStatsSyncService; }
 
     private PlayerDataAdapter<BalanceSnapshot> resolveBalanceAdapter() {
