@@ -10,6 +10,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -194,7 +195,7 @@ public class PlanServerStatsCollector implements ServerStatsCollector {
         });
     }
 
-    private int bindWeekWindow(PreparedStatement statement, int index, UUID serverUuid, long from, long to) throws Exception {
+    private int bindWeekWindow(PreparedStatement statement, int index, UUID serverUuid, long from, long to) throws SQLException {
         statement.setString(index++, serverUuid.toString());
         statement.setLong(index++, from);
         statement.setLong(index++, to);
