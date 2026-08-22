@@ -1,5 +1,9 @@
 package net.mcverse.register.commands;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.mcverse.register.MCVerseRegister;
 import net.mcverse.register.api.ApiResponse;
 
@@ -10,6 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class RegisterCommand implements CommandExecutor {
+
+    private static final String DEFAULT_LOGIN_URL = "https://www.mcverse.city/login";
 
     private final MCVerseRegister plugin;
 
@@ -29,6 +35,11 @@ public class RegisterCommand implements CommandExecutor {
             return true;
         }
 
+        if (plugin.getRegistrationCache().isRegistered(player.getUniqueId())) {
+            player.sendMessage(alreadyLinkedMessage());
+            return true;
+        }
+
         if (args.length != 1) {
             player.sendMessage(plugin.getMessageUtil().get("register-usage"));
             return true;
@@ -38,11 +49,6 @@ public class RegisterCommand implements CommandExecutor {
 
         if (!isValidEmail(email)) {
             player.sendMessage(plugin.getMessageUtil().get("register-invalid-email"));
-            return true;
-        }
-
-        if (plugin.getRegistrationCache().isRegistered(player.getUniqueId())) {
-            player.sendMessage(plugin.getMessageUtil().get("register-already-registered"));
             return true;
         }
 
@@ -78,6 +84,19 @@ public class RegisterCommand implements CommandExecutor {
         });
 
         return true;
+    }
+
+    private Component alreadyLinkedMessage() {
+        String loginUrl = plugin.getConfig().getString("login-url", DEFAULT_LOGIN_URL);
+        if (loginUrl == null || loginUrl.isBlank()) {
+            loginUrl = DEFAULT_LOGIN_URL;
+        }
+        return plugin.getMessageUtil().prefixComponent()
+                .append(Component.text("Your account is already linked. ", NamedTextColor.YELLOW))
+                .append(Component.text("Click to login", NamedTextColor.AQUA)
+                        .decorate(TextDecoration.UNDERLINED)
+                        .clickEvent(ClickEvent.openUrl(loginUrl)))
+                .append(Component.text(". Use /unregister to unlink.", NamedTextColor.YELLOW));
     }
 
     private String messageForResponse(ApiResponse response) {

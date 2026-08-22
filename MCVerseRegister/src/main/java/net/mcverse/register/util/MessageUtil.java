@@ -1,9 +1,14 @@
 package net.mcverse.register.util;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.mcverse.register.MCVerseRegister;
 import org.bukkit.ChatColor;
 
 public class MessageUtil {
+
+    private static final LegacyComponentSerializer LEGACY_AMPERSAND =
+            LegacyComponentSerializer.legacyAmpersand();
 
     private final MCVerseRegister plugin;
 
@@ -21,5 +26,10 @@ public class MessageUtil {
     /** Translates color codes in a raw string. */
     public String format(String raw) {
         return ChatColor.translateAlternateColorCodes('&', raw);
+    }
+
+    public Component prefixComponent() {
+        String prefix = plugin.getConfig().getString("messages.prefix", "&8[&bMCVerse&8] &r");
+        return LEGACY_AMPERSAND.deserialize(prefix);
     }
 }
