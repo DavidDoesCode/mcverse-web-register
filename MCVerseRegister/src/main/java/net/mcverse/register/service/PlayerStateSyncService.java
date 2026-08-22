@@ -13,8 +13,6 @@ import net.mcverse.register.integration.ClanSnapshot;
 import net.mcverse.register.integration.ClaimsSnapshot;
 import net.mcverse.register.integration.GroupsSnapshot;
 import net.mcverse.register.integration.PlayerDataAdapter;
-import net.mcverse.register.util.ExpiringUuidCache;
-
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -38,7 +36,6 @@ public class PlayerStateSyncService {
     private final PlayerDataAdapter<GroupsSnapshot> groupsAdapter;
     private final PlayerDataAdapter<ClanSnapshot> clansAdapter;
     private final PlayerDataAdapter<ClaimsSnapshot> claimsAdapter;
-    private final ExpiringUuidCache unlinkedCache = new ExpiringUuidCache();
     private final Map<String, Long> lastSyncedAt = new ConcurrentHashMap<>();
 
     public PlayerStateSyncService(
@@ -57,12 +54,7 @@ public class PlayerStateSyncService {
     }
 
     public void syncPlayer(Player player, String trigger) {
-        UUID uuid = player.getUniqueId();
         long now = System.currentTimeMillis();
-        if (unlinkedCache.containsActive(uuid, now)) {
-            plugin.getLogger().info("[diag-sync] skipped uuid=" + uuid + " reason=unlinked_cache trigger=" + trigger);
-            return;
-        }
 
         CompletableFuture<?> balanceFuture = syncBalance(player, trigger, now);
         CompletableFuture<?> groupsFuture = syncGroups(player, trigger, now);
@@ -128,8 +120,8 @@ public class PlayerStateSyncService {
             ApiResponse response = executeWithRetry(category, call);
             int statusCode = response.getStatusCode();
             if (statusCode == 404) {
-                unlinkedCache.put(uuid, unlinkedCacheTtlMillis(), System.currentTimeMillis());
-                plugin.getLogger().info("[diag-sync] result uuid=" + uuid + " category=" + category + " trigger=" + trigger + " status=404 unlinked=true");
+                plugin.getLogger().warning("[diag-sync] result uuid=" + uuid + " category=" + category
+                        + " trigger=" + trigger + " status=404; will retry next join");
                 return;
             }
             if (statusCode == 422) {
@@ -203,10 +195,6 @@ public class PlayerStateSyncService {
 
     private long minSyncIntervalMillis() {
         return plugin.getConfig().getLong("sync.min-sync-interval-ms", 30_000L);
-    }
-
-    private long unlinkedCacheTtlMillis() {
-        return plugin.getConfig().getLong("sync.unlinked-cache-ttl-ms", 300_000L);
     }
 
     private int maxAttempts() {

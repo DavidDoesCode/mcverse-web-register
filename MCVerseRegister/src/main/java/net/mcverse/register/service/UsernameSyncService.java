@@ -40,37 +40,29 @@ public class UsernameSyncService {
 
         try {
             ApiResponse lookupApiResponse = executeWithRetry("lookup", () -> apiClient.getPlayer(uuid));
+            int lookupStatus = lookupApiResponse.getStatusCode();
 
-            if (lookupApiResponse.getStatusCode() == 404) {
-                plugin.getLogger().info("[username-sync] unregistered skip uuid=" + uuid + " status=404");
-                return UsernameSyncResult.unregistered();
-            }
-
-            if (lookupApiResponse.getStatusCode() != 200) {
-                plugin.getLogger().warning("[username-sync] check failed uuid=" + uuid
-                        + " status=" + lookupApiResponse.getStatusCode());
+            if (lookupStatus != 200 && lookupStatus != 404) {
+                plugin.getLogger().warning("[username-sync] check failed uuid=" + uuid + " status=" + lookupStatus);
                 return UsernameSyncResult.failure();
             }
 
-            PlayerLookupResponse lookupResponse = PlayerLookupResponse.fromApiResponse(lookupApiResponse);
-            if (!lookupResponse.registered()) {
-                plugin.getLogger().info("[username-sync] unregistered skip uuid=" + uuid + " registered=false");
-                return UsernameSyncResult.unregistered();
-            }
-
-            PlayerLookupPlayer backendPlayer = lookupResponse.player();
+            PlayerLookupResponse lookupResponse = lookupStatus == 200
+                    ? PlayerLookupResponse.fromApiResponse(lookupApiResponse)
+                    : null;
+            boolean websiteLinked = lookupResponse != null && lookupResponse.registered();
+            PlayerLookupPlayer backendPlayer = lookupResponse == null ? null : lookupResponse.player();
             String backendUsername = backendPlayer == null ? null : backendPlayer.minecraftUsername();
-            if (backendUsername == null) {
-                plugin.getLogger().warning("[username-sync] check failed uuid=" + uuid + " reason=missing-backend-username");
-                return UsernameSyncResult.failure();
+
+            if (backendUsername != null && backendUsername.equals(currentMinecraftUsername)) {
+                plugin.getLogger().info("[username-sync] sync success uuid=" + uuid
+                        + " changed=false registered=" + websiteLinked);
+                return websiteLinked ? UsernameSyncResult.registeredInSync() : UsernameSyncResult.unregistered();
             }
 
-            if (backendUsername.equals(currentMinecraftUsername)) {
-                plugin.getLogger().info("[username-sync] sync success uuid=" + uuid + " changed=false");
-                return UsernameSyncResult.registeredInSync();
-            }
-
-            plugin.getLogger().info("[username-sync] mismatch detected uuid=" + uuid
+            plugin.getLogger().info("[username-sync] posting username uuid=" + uuid
+                    + " lookupStatus=" + lookupStatus
+                    + " registered=" + websiteLinked
                     + " backendUsername=" + backendUsername
                     + " currentUsername=" + currentMinecraftUsername);
 
@@ -80,14 +72,20 @@ public class UsernameSyncService {
             );
 
             if (syncApiResponse.getStatusCode() == 404) {
-                plugin.getLogger().info("[username-sync] unregistered skip uuid=" + uuid + " status=404");
-                return UsernameSyncResult.unregistered();
+                plugin.getLogger().warning("[username-sync] username route missing (404) uuid=" + uuid
+                        + "; will retry next join");
+                return websiteLinked ? UsernameSyncResult.failure() : UsernameSyncResult.unregistered();
             }
 
             if (syncApiResponse.getStatusCode() != 200) {
                 plugin.getLogger().warning("[username-sync] sync failed uuid=" + uuid
                         + " status=" + syncApiResponse.getStatusCode());
                 return UsernameSyncResult.failure();
+            }
+
+            if (!websiteLinked) {
+                plugin.getLogger().info("[username-sync] stub upsert uuid=" + uuid + " registered=false");
+                return UsernameSyncResult.unregistered();
             }
 
             UsernameSyncResponse syncResponse = UsernameSyncResponse.fromApiResponse(syncApiResponse);

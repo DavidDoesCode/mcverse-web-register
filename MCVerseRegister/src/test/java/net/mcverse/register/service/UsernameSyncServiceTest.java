@@ -49,15 +49,34 @@ class UsernameSyncServiceTest {
     }
 
     @Test
-    void skipsWhenUuidIsUnregistered() throws Exception {
+    void postsUsernameWhenLookupIs404() throws Exception {
         UUID uuid = UUID.randomUUID();
         when(apiClient.getPlayer(uuid)).thenReturn(new ApiResponse(404, "{\"success\":false,\"registered\":false}"));
+        when(apiClient.syncUsername(eq(uuid), any(UsernameSyncRequest.class)))
+                .thenReturn(new ApiResponse(200, "{\"success\":true,\"changed\":true}"));
 
         UsernameSyncResult result = service.syncIfNeeded(uuid, "CurrentName");
 
         assertTrue(result.success());
         assertFalse(result.registered());
-        verify(apiClient, never()).syncUsername(eq(uuid), any(UsernameSyncRequest.class));
+        verify(apiClient, times(1)).syncUsername(eq(uuid), any(UsernameSyncRequest.class));
+    }
+
+    @Test
+    void postsUsernameWhenRegisteredFalse() throws Exception {
+        UUID uuid = UUID.randomUUID();
+        when(apiClient.getPlayer(uuid)).thenReturn(new ApiResponse(
+                200,
+                "{\"success\":true,\"registered\":false,\"player\":{\"minecraftUsername\":\"OldName\",\"minecraftUuid\":\"" + uuid + "\"}}"
+        ));
+        when(apiClient.syncUsername(eq(uuid), any(UsernameSyncRequest.class)))
+                .thenReturn(new ApiResponse(200, "{\"success\":true,\"changed\":true}"));
+
+        UsernameSyncResult result = service.syncIfNeeded(uuid, "CurrentName");
+
+        assertTrue(result.success());
+        assertFalse(result.registered());
+        verify(apiClient, times(1)).syncUsername(eq(uuid), any(UsernameSyncRequest.class));
     }
 
     @Test

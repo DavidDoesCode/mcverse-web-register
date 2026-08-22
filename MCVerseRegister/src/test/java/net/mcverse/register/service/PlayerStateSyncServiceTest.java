@@ -79,7 +79,7 @@ class PlayerStateSyncServiceTest {
     }
 
     @Test
-    void unlinked404SuppressesFurtherSyncWithinTtl() throws Exception {
+    void status404DoesNotSuppressLaterSync() throws Exception {
         when(apiClient.syncBalance(any(), any())).thenReturn(new ApiResponse(404, "{\"success\":false,\"registered\":false}"));
         when(apiClient.syncGroups(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
         when(apiClient.syncSimpleClans(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
@@ -88,10 +88,10 @@ class PlayerStateSyncServiceTest {
         service.syncPlayer(player, "join");
         service.syncPlayer(player, "join");
 
-        verify(apiClient, times(1)).syncBalance(any(), any());
-        verify(apiClient, times(1)).syncGroups(any(), any());
-        verify(apiClient, times(1)).syncSimpleClans(any(), any());
-        verify(apiClient, times(1)).syncGriefPreventionClaims(any(), any());
+        verify(apiClient, times(2)).syncBalance(any(), any());
+        verify(apiClient, times(2)).syncGroups(any(), any());
+        verify(apiClient, times(2)).syncSimpleClans(any(), any());
+        verify(apiClient, times(2)).syncGriefPreventionClaims(any(), any());
     }
 
     @Test
