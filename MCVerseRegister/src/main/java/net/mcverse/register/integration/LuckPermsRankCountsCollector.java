@@ -47,7 +47,16 @@ public class LuckPermsRankCountsCollector implements ServerStatsCollector {
         }
 
         RankTally tally = new RankTally(ranks);
-        Set<UUID> uniqueUsers = luckPerms.getUserManager().getUniqueUsers();
+        Set<UUID> uniqueUsers;
+        try {
+            uniqueUsers = luckPerms.getUserManager().getUniqueUsers().join();
+        } catch (Exception e) {
+            logger.warning("LuckPerms unique user list failed: " + e.getMessage());
+            return;
+        }
+        if (uniqueUsers == null) {
+            return;
+        }
         for (UUID uuid : uniqueUsers) {
             User user = loadUser(uuid);
             if (user == null) {
