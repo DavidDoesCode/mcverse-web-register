@@ -3,15 +3,15 @@ package net.mcverse.register.api;
 import java.time.Instant;
 import java.util.List;
 
-public record GroupsSyncRequest(String primaryGroup, List<String> groups, Instant observedAt) {
+public record GroupsSyncRequest(String minecraftUsername, String primaryGroup, List<String> groups, Instant observedAt) {
 
     public String toJson() {
         StringBuilder json = new StringBuilder();
-        json.append("{");
+        json.append("{\"minecraftUsername\":\"").append(escapeJson(minecraftUsername)).append("\"");
         if (primaryGroup == null) {
-            json.append("\"primaryGroup\":null");
+            json.append(",\"primaryGroup\":null");
         } else {
-            json.append("\"primaryGroup\":\"").append(escapeJson(primaryGroup)).append("\"");
+            json.append(",\"primaryGroup\":\"").append(escapeJson(primaryGroup)).append("\"");
         }
         json.append(",\"groups\":[");
         List<String> safeGroups = groups == null ? List.of() : groups;

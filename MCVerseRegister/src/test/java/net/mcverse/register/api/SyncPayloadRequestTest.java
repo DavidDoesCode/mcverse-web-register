@@ -15,21 +15,24 @@ class SyncPayloadRequestTest {
 
     @Test
     void balancePayloadContainsRequiredFields() {
-        String json = new BalanceSyncRequest(12345.67, Instant.parse("2026-04-30T15:00:00Z")).toJson();
+        String json = new BalanceSyncRequest("Steve", 12345.67, Instant.parse("2026-04-30T15:00:00Z")).toJson();
+        assertTrue(json.contains("\"minecraftUsername\":\"Steve\""));
         assertTrue(json.contains("\"balance\":12345.67"));
         assertTrue(json.contains("\"observedAt\":\"2026-04-30T15:00:00Z\""));
     }
 
     @Test
     void groupsPayloadIncludesPrimaryAndGroups() {
-        String json = new GroupsSyncRequest("vip", List.of("default", "vip"), Instant.parse("2026-04-30T15:00:00Z")).toJson();
+        String json = new GroupsSyncRequest("Steve", "vip", List.of("default", "vip"), Instant.parse("2026-04-30T15:00:00Z")).toJson();
+        assertTrue(json.contains("\"minecraftUsername\":\"Steve\""));
         assertTrue(json.contains("\"primaryGroup\":\"vip\""));
         assertTrue(json.contains("\"groups\":[\"default\",\"vip\"]"));
     }
 
     @Test
     void simpleClansPayloadHandlesNullables() {
-        String json = new SimpleClansSyncRequest(null, "MCVerse", null, null).toJson();
+        String json = new SimpleClansSyncRequest("Steve", null, "MCVerse", null, null).toJson();
+        assertTrue(json.contains("\"minecraftUsername\":\"Steve\""));
         assertTrue(json.contains("\"clanTag\":null"));
         assertTrue(json.contains("\"clanName\":\"MCVerse\""));
         assertTrue(json.contains("\"clanRole\":null"));
@@ -38,6 +41,7 @@ class SyncPayloadRequestTest {
     @Test
     void claimsPayloadContainsCountsAndLocations() {
         GriefPreventionClaimsSyncRequest request = new GriefPreventionClaimsSyncRequest(
+                "Steve",
                 3,
                 2500,
                 1000,
@@ -46,6 +50,7 @@ class SyncPayloadRequestTest {
                 Instant.parse("2026-04-30T15:00:00Z")
         );
         String json = request.toJson();
+        assertTrue(json.contains("\"minecraftUsername\":\"Steve\""));
         assertTrue(json.contains("\"claimCount\":3"));
         assertTrue(json.contains("\"remainingClaimBlocks\":750"));
         assertTrue(json.contains("\"claims\":[{\"world\":\"world\",\"x\":10,\"z\":10}]"));
@@ -73,6 +78,7 @@ class SyncPayloadRequestTest {
         assertTrue(json.contains("\"citizenAll\":120"));
         assertTrue(json.contains("\"playersJoined\":1234"));
         assertTrue(json.contains("\"observedAt\":\"2026-08-21T20:00:00Z\""));
+        assertTrue(!json.contains("minecraftUsername"));
     }
 
     @Test

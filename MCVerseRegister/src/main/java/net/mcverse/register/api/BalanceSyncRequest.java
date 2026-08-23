@@ -2,11 +2,12 @@ package net.mcverse.register.api;
 
 import java.time.Instant;
 
-public record BalanceSyncRequest(double balance, Instant observedAt) {
+public record BalanceSyncRequest(String minecraftUsername, double balance, Instant observedAt) {
 
     public String toJson() {
         StringBuilder json = new StringBuilder();
-        json.append("{\"balance\":").append(balance);
+        json.append("{\"minecraftUsername\":\"").append(escapeJson(minecraftUsername)).append("\"");
+        json.append(",\"balance\":").append(balance);
         if (observedAt != null) {
             json.append(",\"observedAt\":\"").append(observedAt).append("\"");
         }
@@ -16,5 +17,9 @@ public record BalanceSyncRequest(double balance, Instant observedAt) {
 
     public String summary() {
         return "balance=" + balance;
+    }
+
+    private String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

@@ -68,7 +68,7 @@ public class PlayerStateSyncService {
             return CompletableFuture.completedFuture(null);
         }
         return CompletableFuture.runAsync(() -> balanceAdapter.snapshot(player).ifPresent(snapshot -> {
-            BalanceSyncRequest payload = new BalanceSyncRequest(snapshot.balance(), Instant.now());
+            BalanceSyncRequest payload = new BalanceSyncRequest(player.getName(), snapshot.balance(), Instant.now());
             performSync(player.getUniqueId(), CATEGORY_BALANCE, payload.summary(), () -> apiClient.syncBalance(player.getUniqueId(), payload), trigger);
         }));
     }
@@ -78,7 +78,7 @@ public class PlayerStateSyncService {
             return CompletableFuture.completedFuture(null);
         }
         return CompletableFuture.runAsync(() -> groupsAdapter.snapshot(player).ifPresent(snapshot -> {
-            GroupsSyncRequest payload = new GroupsSyncRequest(snapshot.primaryGroup(), snapshot.groups(), Instant.now());
+            GroupsSyncRequest payload = new GroupsSyncRequest(player.getName(), snapshot.primaryGroup(), snapshot.groups(), Instant.now());
             performSync(player.getUniqueId(), CATEGORY_GROUPS, payload.summary(), () -> apiClient.syncGroups(player.getUniqueId(), payload), trigger);
         }));
     }
@@ -89,6 +89,7 @@ public class PlayerStateSyncService {
         }
         return CompletableFuture.runAsync(() -> clansAdapter.snapshot(player).ifPresent(snapshot -> {
             SimpleClansSyncRequest payload = new SimpleClansSyncRequest(
+                    player.getName(),
                     snapshot.clanTag(),
                     snapshot.clanName(),
                     snapshot.clanRole(),
@@ -104,6 +105,7 @@ public class PlayerStateSyncService {
         }
         return CompletableFuture.runAsync(() -> claimsAdapter.snapshot(player).ifPresent(snapshot -> {
             GriefPreventionClaimsSyncRequest payload = new GriefPreventionClaimsSyncRequest(
+                    player.getName(),
                     snapshot.claimCount(),
                     snapshot.accruedClaimBlocks(),
                     snapshot.bonusClaimBlocks(),

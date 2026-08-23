@@ -59,6 +59,7 @@ class PlayerStateSyncServiceTest {
         when(plugin.getConfig()).thenReturn(config);
         when(plugin.getLogger()).thenReturn(Logger.getLogger("PlayerStateSyncServiceTest"));
         when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(player.getName()).thenReturn("Steve");
 
         service = new PlayerStateSyncService(plugin, balanceAdapter, groupsAdapter, clansAdapter, claimsAdapter);
     }

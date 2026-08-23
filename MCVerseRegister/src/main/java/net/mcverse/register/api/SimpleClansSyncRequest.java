@@ -2,11 +2,19 @@ package net.mcverse.register.api;
 
 import java.time.Instant;
 
-public record SimpleClansSyncRequest(String clanTag, String clanName, String clanRole, Instant observedAt) {
+public record SimpleClansSyncRequest(
+        String minecraftUsername,
+        String clanTag,
+        String clanName,
+        String clanRole,
+        Instant observedAt
+) {
 
     public String toJson() {
         StringBuilder json = new StringBuilder();
         json.append("{");
+        json.append("\"minecraftUsername\":\"").append(escapeJson(minecraftUsername)).append("\"");
+        json.append(",");
         appendNullable(json, "clanTag", clanTag);
         json.append(",");
         appendNullable(json, "clanName", clanName);

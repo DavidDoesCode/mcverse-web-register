@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 public record GriefPreventionClaimsSyncRequest(
+        String minecraftUsername,
         int claimCount,
         int accruedClaimBlocks,
         int bonusClaimBlocks,
@@ -15,7 +16,8 @@ public record GriefPreventionClaimsSyncRequest(
     public String toJson() {
         StringBuilder json = new StringBuilder();
         json.append("{");
-        json.append("\"claimCount\":").append(claimCount);
+        json.append("\"minecraftUsername\":\"").append(escapeJson(minecraftUsername)).append("\"");
+        json.append(",\"claimCount\":").append(claimCount);
         json.append(",\"accruedClaimBlocks\":").append(accruedClaimBlocks);
         json.append(",\"bonusClaimBlocks\":").append(bonusClaimBlocks);
         json.append(",\"remainingClaimBlocks\":").append(remainingClaimBlocks);
@@ -38,5 +40,9 @@ public record GriefPreventionClaimsSyncRequest(
     public String summary() {
         int size = claims == null ? 0 : claims.size();
         return "claimCount=" + claimCount + ",remainingClaimBlocks=" + remainingClaimBlocks + ",claimsSize=" + size;
+    }
+
+    private String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
