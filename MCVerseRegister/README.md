@@ -8,7 +8,7 @@ A Paper plugin that lets players link their Minecraft account to the MCVerse web
 - Already-linked `/register` shows a clickable **Click to login** URL (no email resend)
 - `/unregister` — unlink website email from the UUID (does not delete synced data)
 - Registration status checked on login; unlinked players are shown a hint
-- Username, balance, groups, clan, and claims sync on join for **every** UUID (website account optional)
+- Username, balance, groups, clan, claims, and EssentialsX nickname sync on join for **every** UUID (website account optional); nicknames also POST immediately on `/nick`
 - Vanilla Minecraft statistics snapshot on quit (~once per 24h) for every player
 - Daily server-wide PLAN/LuckPerms/Vault/GriefPrevention snapshot at a configured wall-clock time
 - `/mcvadmin syncstats` — force one server-stats snapshot without changing the daily slot
@@ -20,7 +20,7 @@ A Paper plugin that lets players link their Minecraft account to the MCVerse web
 - Paper 1.21.11+ (compiled against `paper-api 1.21.11-R0.1-SNAPSHOT`; vanilla collectors iterate registries so a later 26.2 bump does not require a payload-schema change)
 - Java 21+
 - MCVerse backend API accessible from the server
-- Optional soft dependencies: Vault, LuckPerms, SimpleClans, GriefPrevention, Plan
+- Optional soft dependencies: Vault, LuckPerms, SimpleClans, GriefPrevention, Plan, EssentialsX
 
 ## Installation
 
@@ -93,6 +93,7 @@ The plugin communicates with the MCVerse backend using these endpoints:
 | `POST` | `/api/v1/sync/players/{uuid}/groups` | LuckPerms primary group + groups |
 | `POST` | `/api/v1/sync/players/{uuid}/simpleclans` | SimpleClans clan/tag/role |
 | `POST` | `/api/v1/sync/players/{uuid}/griefprevention-claims` | GriefPrevention claims summary/list |
+| `POST` | `/api/v1/sync/players/{uuid}/nickname` | EssentialsX nickname (raw codes; JSON `null` if unset). Never written into `minecraftUsername` |
 | `POST` | `/api/v1/sync/players/{uuid}/vanilla-stats` | Mojang-shaped vanilla stats on quit |
 | `POST` | `/api/v1/sync/server/stats` | Daily server-wide snapshot |
 

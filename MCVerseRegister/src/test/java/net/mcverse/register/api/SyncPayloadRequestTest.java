@@ -39,6 +39,26 @@ class SyncPayloadRequestTest {
     }
 
     @Test
+    void nicknamePayloadIncludesFormattedNick() {
+        String json = new NicknameSyncRequest(
+                "Steve",
+                "&cSteve&fThe&bBest",
+                Instant.parse("2026-04-30T15:00:00Z")
+        ).toJson();
+        assertTrue(json.contains("\"minecraftUsername\":\"Steve\""));
+        assertTrue(json.contains("\"nickname\":\"&cSteve&fThe&bBest\""));
+        assertTrue(json.contains("\"observedAt\":\"2026-04-30T15:00:00Z\""));
+    }
+
+    @Test
+    void nicknamePayloadSerializesNullAndOmitsObservedAt() {
+        String json = new NicknameSyncRequest("Steve", "   ", null).toJson();
+        assertTrue(json.contains("\"minecraftUsername\":\"Steve\""));
+        assertTrue(json.contains("\"nickname\":null"));
+        assertTrue(!json.contains("observedAt"));
+    }
+
+    @Test
     void claimsPayloadContainsCountsAndLocations() {
         GriefPreventionClaimsSyncRequest request = new GriefPreventionClaimsSyncRequest(
                 "Steve",

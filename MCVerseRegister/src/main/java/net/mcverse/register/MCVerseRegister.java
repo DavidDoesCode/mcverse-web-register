@@ -5,16 +5,20 @@ import net.mcverse.register.commands.AdminCommand;
 import net.mcverse.register.integration.BalanceSnapshot;
 import net.mcverse.register.integration.ClanSnapshot;
 import net.mcverse.register.integration.ClaimsSnapshot;
+import net.mcverse.register.integration.EssentialsNicknameAdapter;
 import net.mcverse.register.integration.GriefPreventionAdapter;
 import net.mcverse.register.integration.GroupsSnapshot;
 import net.mcverse.register.integration.LuckPermsGroupsAdapter;
 import net.mcverse.register.integration.NoopBalanceAdapter;
 import net.mcverse.register.integration.NoopGriefPreventionAdapter;
 import net.mcverse.register.integration.NoopGroupsAdapter;
+import net.mcverse.register.integration.NoopNicknameAdapter;
 import net.mcverse.register.integration.NoopSimpleClansAdapter;
+import net.mcverse.register.integration.NicknameSnapshot;
 import net.mcverse.register.integration.PlayerDataAdapter;
 import net.mcverse.register.integration.SimpleClansAdapter;
 import net.mcverse.register.integration.VaultBalanceAdapter;
+import net.mcverse.register.listeners.EssentialsNickChangeListener;
 import net.mcverse.register.commands.RegisterCommand;
 import net.mcverse.register.commands.UnregisterCommand;
 import net.mcverse.register.listeners.PlayerListener;
@@ -52,12 +56,14 @@ public class MCVerseRegister extends JavaPlugin {
         var groupsAdapter = resolveGroupsAdapter();
         var clansAdapter = resolveSimpleClansAdapter();
         var claimsAdapter = resolveGriefPreventionAdapter();
+        var nicknameAdapter = resolveNicknameAdapter();
         this.playerStateSyncService = new PlayerStateSyncService(
                 this,
                 balanceAdapter,
                 groupsAdapter,
                 clansAdapter,
-                claimsAdapter
+                claimsAdapter,
+                nicknameAdapter
         );
         this.vanillaStatsSyncService = new VanillaStatsSyncService(this, balanceAdapter, groupsAdapter);
         this.serverStatsSyncService = new ServerStatsSyncService(this);
@@ -67,6 +73,9 @@ public class MCVerseRegister extends JavaPlugin {
         getCommand("mcvadmin").setExecutor(new AdminCommand(this));
 
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+        if (nicknameAdapter.isAvailable()) {
+            getServer().getPluginManager().registerEvents(new EssentialsNickChangeListener(playerStateSyncService), this);
+        }
         scheduleDiagnosticReconciliation();
         this.serverStatsSyncService.start();
 
@@ -128,6 +137,16 @@ public class MCVerseRegister extends JavaPlugin {
         }
         getLogger().info("Diagnostics: GriefPrevention not available; claims sync disabled.");
         return new NoopGriefPreventionAdapter();
+    }
+
+    private PlayerDataAdapter<NicknameSnapshot> resolveNicknameAdapter() {
+        EssentialsNicknameAdapter adapter = new EssentialsNicknameAdapter();
+        if (adapter.isAvailable()) {
+            getLogger().info("Diagnostics: Essentials nickname adapter enabled.");
+            return adapter;
+        }
+        getLogger().info("Diagnostics: Essentials not available; nickname sync disabled.");
+        return new NoopNicknameAdapter();
     }
 
     private void scheduleDiagnosticReconciliation() {

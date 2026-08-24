@@ -115,6 +115,10 @@ public class MCVerseApiClient {
         return postPlayerSync(uuid, "griefprevention-claims", requestBody.toJson());
     }
 
+    public ApiResponse syncNickname(UUID uuid, NicknameSyncRequest requestBody) throws Exception {
+        return postPlayerSync(uuid, "nickname", requestBody.toJson());
+    }
+
     public ApiResponse syncServerStats(ServerStatsSyncRequest requestBody) throws Exception {
         return postJson(baseUrl() + "/api/v1/sync/server/stats", requestBody.toJson());
     }

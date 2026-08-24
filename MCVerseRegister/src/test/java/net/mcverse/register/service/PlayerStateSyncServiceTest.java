@@ -7,6 +7,7 @@ import net.mcverse.register.integration.BalanceSnapshot;
 import net.mcverse.register.integration.ClanSnapshot;
 import net.mcverse.register.integration.ClaimsSnapshot;
 import net.mcverse.register.integration.GroupsSnapshot;
+import net.mcverse.register.integration.NicknameSnapshot;
 import net.mcverse.register.integration.PlayerDataAdapter;
 
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -35,6 +36,7 @@ class PlayerStateSyncServiceTest {
     private PlayerDataAdapter<GroupsSnapshot> groupsAdapter;
     private PlayerDataAdapter<ClanSnapshot> clansAdapter;
     private PlayerDataAdapter<ClaimsSnapshot> claimsAdapter;
+    private PlayerDataAdapter<NicknameSnapshot> nicknameAdapter;
     private PlayerStateSyncService service;
 
     @BeforeEach
@@ -47,6 +49,7 @@ class PlayerStateSyncServiceTest {
         groupsAdapter = staticAdapter(new GroupsSnapshot("vip", List.of("default", "vip")));
         clansAdapter = staticAdapter(new ClanSnapshot("MCV", "MCVerse", "MEMBER"));
         claimsAdapter = staticAdapter(new ClaimsSnapshot(1, 100, 50, 20, List.of()));
+        nicknameAdapter = staticAdapter(new NicknameSnapshot("&cSteve"));
 
         YamlConfiguration config = new YamlConfiguration();
         config.set("sync.min-sync-interval-ms", 0L);
@@ -61,7 +64,7 @@ class PlayerStateSyncServiceTest {
         when(player.getUniqueId()).thenReturn(UUID.randomUUID());
         when(player.getName()).thenReturn("Steve");
 
-        service = new PlayerStateSyncService(plugin, balanceAdapter, groupsAdapter, clansAdapter, claimsAdapter);
+        service = new PlayerStateSyncService(plugin, balanceAdapter, groupsAdapter, clansAdapter, claimsAdapter, nicknameAdapter);
     }
 
     @Test
@@ -70,6 +73,7 @@ class PlayerStateSyncServiceTest {
         when(apiClient.syncGroups(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
         when(apiClient.syncSimpleClans(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
         when(apiClient.syncGriefPreventionClaims(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
+        when(apiClient.syncNickname(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
 
         service.syncPlayer(player, "join");
 
@@ -77,6 +81,7 @@ class PlayerStateSyncServiceTest {
         verify(apiClient, times(1)).syncGroups(any(), any());
         verify(apiClient, times(1)).syncSimpleClans(any(), any());
         verify(apiClient, times(1)).syncGriefPreventionClaims(any(), any());
+        verify(apiClient, times(1)).syncNickname(any(), any());
     }
 
     @Test
@@ -85,6 +90,7 @@ class PlayerStateSyncServiceTest {
         when(apiClient.syncGroups(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
         when(apiClient.syncSimpleClans(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
         when(apiClient.syncGriefPreventionClaims(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
+        when(apiClient.syncNickname(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
 
         service.syncPlayer(player, "join");
         service.syncPlayer(player, "join");
@@ -93,6 +99,7 @@ class PlayerStateSyncServiceTest {
         verify(apiClient, times(2)).syncGroups(any(), any());
         verify(apiClient, times(2)).syncSimpleClans(any(), any());
         verify(apiClient, times(2)).syncGriefPreventionClaims(any(), any());
+        verify(apiClient, times(2)).syncNickname(any(), any());
     }
 
     @Test
@@ -104,6 +111,7 @@ class PlayerStateSyncServiceTest {
                 staticAdapter(new BalanceSnapshot(25.0D)),
                 unavailableAdapter(),
                 unavailableAdapter(),
+                unavailableAdapter(),
                 unavailableAdapter()
         );
 
@@ -113,6 +121,40 @@ class PlayerStateSyncServiceTest {
         verify(apiClient, never()).syncGroups(eq(player.getUniqueId()), any());
         verify(apiClient, never()).syncSimpleClans(eq(player.getUniqueId()), any());
         verify(apiClient, never()).syncGriefPreventionClaims(eq(player.getUniqueId()), any());
+        verify(apiClient, never()).syncNickname(eq(player.getUniqueId()), any());
+    }
+
+    @Test
+    void syncNicknameNowBypassesMinInterval() throws Exception {
+        when(apiClient.syncNickname(any(), any())).thenReturn(new ApiResponse(200, "{\"success\":true,\"registered\":true,\"updated\":true}"));
+        when(apiClient.syncBalance(any(), any())).thenReturn(new ApiResponse(200, "{}"));
+        when(apiClient.syncGroups(any(), any())).thenReturn(new ApiResponse(200, "{}"));
+        when(apiClient.syncSimpleClans(any(), any())).thenReturn(new ApiResponse(200, "{}"));
+        when(apiClient.syncGriefPreventionClaims(any(), any())).thenReturn(new ApiResponse(200, "{}"));
+
+        MCVerseRegister plugin = mock(MCVerseRegister.class);
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("sync.min-sync-interval-ms", 60_000L);
+        config.set("sync.retry.max-attempts", 1);
+        config.set("sync.retry.base-backoff-ms", 1L);
+        config.set("sync.retry.max-backoff-ms", 1L);
+        when(plugin.getApiClient()).thenReturn(apiClient);
+        when(plugin.getConfig()).thenReturn(config);
+        when(plugin.getLogger()).thenReturn(Logger.getLogger("PlayerStateSyncServiceTest"));
+
+        PlayerStateSyncService intervalService = new PlayerStateSyncService(
+                plugin,
+                balanceAdapter,
+                groupsAdapter,
+                clansAdapter,
+                claimsAdapter,
+                nicknameAdapter
+        );
+
+        intervalService.syncPlayer(player, "join");
+        intervalService.syncNicknameNow(player.getUniqueId(), player.getName(), "&bNewNick", "nick-change").join();
+
+        verify(apiClient, times(2)).syncNickname(any(), any());
     }
 
     private MCVerseRegister mockPluginForPartial() {

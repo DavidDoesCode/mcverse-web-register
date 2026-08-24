@@ -6,12 +6,14 @@ import net.mcverse.register.api.BalanceSyncRequest;
 import net.mcverse.register.api.GriefPreventionClaimsSyncRequest;
 import net.mcverse.register.api.GroupsSyncRequest;
 import net.mcverse.register.api.MCVerseApiClient;
+import net.mcverse.register.api.NicknameSyncRequest;
 import net.mcverse.register.api.PlayerStateSyncResponse;
 import net.mcverse.register.api.SimpleClansSyncRequest;
 import net.mcverse.register.integration.BalanceSnapshot;
 import net.mcverse.register.integration.ClanSnapshot;
 import net.mcverse.register.integration.ClaimsSnapshot;
 import net.mcverse.register.integration.GroupsSnapshot;
+import net.mcverse.register.integration.NicknameSnapshot;
 import net.mcverse.register.integration.PlayerDataAdapter;
 import org.bukkit.entity.Player;
 
@@ -29,6 +31,7 @@ public class PlayerStateSyncService {
     private static final String CATEGORY_GROUPS = "groups";
     private static final String CATEGORY_SIMPLECLANS = "simpleclans";
     private static final String CATEGORY_CLAIMS = "griefprevention-claims";
+    private static final String CATEGORY_NICKNAME = "nickname";
 
     private final MCVerseRegister plugin;
     private final MCVerseApiClient apiClient;
@@ -36,6 +39,7 @@ public class PlayerStateSyncService {
     private final PlayerDataAdapter<GroupsSnapshot> groupsAdapter;
     private final PlayerDataAdapter<ClanSnapshot> clansAdapter;
     private final PlayerDataAdapter<ClaimsSnapshot> claimsAdapter;
+    private final PlayerDataAdapter<NicknameSnapshot> nicknameAdapter;
     private final Map<String, Long> lastSyncedAt = new ConcurrentHashMap<>();
 
     public PlayerStateSyncService(
@@ -43,7 +47,8 @@ public class PlayerStateSyncService {
             PlayerDataAdapter<BalanceSnapshot> balanceAdapter,
             PlayerDataAdapter<GroupsSnapshot> groupsAdapter,
             PlayerDataAdapter<ClanSnapshot> clansAdapter,
-            PlayerDataAdapter<ClaimsSnapshot> claimsAdapter
+            PlayerDataAdapter<ClaimsSnapshot> claimsAdapter,
+            PlayerDataAdapter<NicknameSnapshot> nicknameAdapter
     ) {
         this.plugin = plugin;
         this.apiClient = plugin.getApiClient();
@@ -51,6 +56,7 @@ public class PlayerStateSyncService {
         this.groupsAdapter = groupsAdapter;
         this.clansAdapter = clansAdapter;
         this.claimsAdapter = claimsAdapter;
+        this.nicknameAdapter = nicknameAdapter;
     }
 
     public void syncPlayer(Player player, String trigger) {
@@ -60,7 +66,8 @@ public class PlayerStateSyncService {
         CompletableFuture<?> groupsFuture = syncGroups(player, trigger, now);
         CompletableFuture<?> clansFuture = syncSimpleClans(player, trigger, now);
         CompletableFuture<?> claimsFuture = syncClaims(player, trigger, now);
-        CompletableFuture.allOf(balanceFuture, groupsFuture, clansFuture, claimsFuture).join();
+        CompletableFuture<?> nicknameFuture = syncNickname(player, trigger, now);
+        CompletableFuture.allOf(balanceFuture, groupsFuture, clansFuture, claimsFuture, nicknameFuture).join();
     }
 
     private CompletableFuture<Void> syncBalance(Player player, String trigger, long now) {
@@ -115,6 +122,28 @@ public class PlayerStateSyncService {
             );
             performSync(player.getUniqueId(), CATEGORY_CLAIMS, payload.summary(), () -> apiClient.syncGriefPreventionClaims(player.getUniqueId(), payload), trigger);
         }));
+    }
+
+    private CompletableFuture<Void> syncNickname(Player player, String trigger, long now) {
+        if (!shouldSync(player.getUniqueId(), CATEGORY_NICKNAME, now)) {
+            return CompletableFuture.completedFuture(null);
+        }
+        return CompletableFuture.runAsync(() -> nicknameAdapter.snapshot(player).ifPresent(snapshot -> {
+            NicknameSyncRequest payload = new NicknameSyncRequest(player.getName(), snapshot.nickname(), Instant.now());
+            performSync(player.getUniqueId(), CATEGORY_NICKNAME, payload.summary(), () -> apiClient.syncNickname(player.getUniqueId(), payload), trigger);
+        }));
+    }
+
+    public CompletableFuture<Void> syncNicknameNow(UUID uuid, String minecraftUsername, String nickname, String trigger) {
+        lastSyncedAt.put(uuid + ":" + CATEGORY_NICKNAME, System.currentTimeMillis());
+        NicknameSyncRequest payload = new NicknameSyncRequest(minecraftUsername, nickname, Instant.now());
+        return CompletableFuture.runAsync(() -> performSync(
+                uuid,
+                CATEGORY_NICKNAME,
+                payload.summary(),
+                () -> apiClient.syncNickname(uuid, payload),
+                trigger
+        ));
     }
 
     private void performSync(UUID uuid, String category, String payloadSummary, RetryableCall call, String trigger) {
